@@ -1,5 +1,6 @@
 package cn.hutool.core.util;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.IterUtil;
 import cn.hutool.core.exceptions.UtilException;
@@ -8,7 +9,14 @@ import cn.hutool.core.lang.Filter;
 
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 数组工具类
@@ -477,7 +485,7 @@ public class ArrayUtil {
 	 * @return 新数组
 	 * @since 4.0.8
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "SuspiciousSystemArraycopy"})
 	public static <T> Object insert(Object array, int index, T... newElements) {
 		if (isEmpty(newElements)) {
 			return array;
@@ -541,6 +549,7 @@ public class ArrayUtil {
 		final int length = length(array);
 		final Object newArray = Array.newInstance(array.getClass().getComponentType(), newSize);
 		if (newSize > 0 && isNotEmpty(array)) {
+			//noinspection SuspiciousSystemArraycopy
 			System.arraycopy(array, 0, newArray, 0, Math.min(length, newSize));
 		}
 		return newArray;
@@ -656,6 +665,7 @@ public class ArrayUtil {
 	 * @since 3.0.6
 	 */
 	public static Object copy(Object src, int srcPos, Object dest, int destPos, int length) {
+		//noinspection SuspiciousSystemArraycopy
 		System.arraycopy(src, srcPos, dest, destPos, length);
 		return dest;
 	}
@@ -671,6 +681,7 @@ public class ArrayUtil {
 	 * @since 3.0.6
 	 */
 	public static Object copy(Object src, Object dest, int length) {
+		//noinspection SuspiciousSystemArraycopy
 		System.arraycopy(src, 0, dest, 0, length);
 		return dest;
 	}
@@ -928,7 +939,7 @@ public class ArrayUtil {
 		}
 
 		final int size = Math.min(keys.length, values.length);
-		final Map<K, V> map = CollectionUtil.newHashMap(size, isOrder);
+		final Map<K, V> map = CollUtil.newHashMap(size, isOrder);
 		for (int i = 0; i < size; i++) {
 			map.put(keys[i], values[i]);
 		}
@@ -1477,7 +1488,7 @@ public class ArrayUtil {
 
 		final Integer[] array = new Integer[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Integer.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1499,7 +1510,7 @@ public class ArrayUtil {
 
 		final int[] array = new int[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].intValue();
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1521,7 +1532,7 @@ public class ArrayUtil {
 
 		final Long[] array = new Long[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Long.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1543,7 +1554,7 @@ public class ArrayUtil {
 
 		final long[] array = new long[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].longValue();
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1565,7 +1576,7 @@ public class ArrayUtil {
 
 		final Character[] array = new Character[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Character.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1587,7 +1598,7 @@ public class ArrayUtil {
 
 		char[] array = new char[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].charValue();
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1609,7 +1620,7 @@ public class ArrayUtil {
 
 		final Byte[] array = new Byte[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Byte.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1631,7 +1642,7 @@ public class ArrayUtil {
 
 		final byte[] array = new byte[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].byteValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], (byte)0);
 		}
 		return array;
 	}
@@ -1653,7 +1664,7 @@ public class ArrayUtil {
 
 		final Short[] array = new Short[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Short.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1675,7 +1686,7 @@ public class ArrayUtil {
 
 		final short[] array = new short[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].shortValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], (short)0);
 		}
 		return array;
 	}
@@ -1697,7 +1708,7 @@ public class ArrayUtil {
 
 		final Float[] array = new Float[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Float.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1719,7 +1730,7 @@ public class ArrayUtil {
 
 		final float[] array = new float[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].floatValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], 0F);
 		}
 		return array;
 	}
@@ -1741,7 +1752,7 @@ public class ArrayUtil {
 
 		final Double[] array = new Double[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Double.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1763,7 +1774,7 @@ public class ArrayUtil {
 
 		final double[] array = new double[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].doubleValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], 0D);
 		}
 		return array;
 	}
@@ -1785,7 +1796,7 @@ public class ArrayUtil {
 
 		final Boolean[] array = new Boolean[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = Boolean.valueOf(values[i]);
+			array[i] = values[i];
 		}
 		return array;
 	}
@@ -1807,7 +1818,7 @@ public class ArrayUtil {
 
 		final boolean[] array = new boolean[length];
 		for (int i = 0; i < length; i++) {
-			array[i] = values[i].booleanValue();
+			array[i] = ObjectUtil.defaultIfNull(values[i], false);
 		}
 		return array;
 	}
@@ -2391,7 +2402,7 @@ public class ArrayUtil {
 			if (ArrayUtil.isArray(item)) {
 				sb.append(join(ArrayUtil.wrap(item), conjunction, prefix, suffix));
 			} else if (item instanceof Iterable<?>) {
-				sb.append(IterUtil.join((Iterable<?>) item, conjunction, prefix, suffix));
+				sb.append(CollUtil.join((Iterable<?>) item, conjunction, prefix, suffix));
 			} else if (item instanceof Iterator<?>) {
 				sb.append(IterUtil.join((Iterator<?>) item, conjunction, prefix, suffix));
 			} else {
@@ -2671,7 +2682,7 @@ public class ArrayUtil {
 	 * @since 3.0.9
 	 */
 	public static <T> T[] toArray(Iterator<T> iterator, Class<T> componentType) {
-		return toArray(CollectionUtil.newArrayList(iterator), componentType);
+		return toArray(CollUtil.newArrayList(iterator), componentType);
 	}
 
 	/**
@@ -2697,8 +2708,7 @@ public class ArrayUtil {
 	 * @since 3.0.9
 	 */
 	public static <T> T[] toArray(Collection<T> collection, Class<T> componentType) {
-		final T[] array = newArray(componentType, collection.size());
-		return collection.toArray(array);
+		return collection.toArray(newArray(componentType, 0));
 	}
 
 	// ---------------------------------------------------------------------- remove
@@ -2841,6 +2851,7 @@ public class ArrayUtil {
 	 * @throws IllegalArgumentException 参数对象不为数组对象
 	 * @since 3.0.8
 	 */
+	@SuppressWarnings("SuspiciousSystemArraycopy")
 	public static Object remove(Object array, int index) throws IllegalArgumentException {
 		if (null == array) {
 			return null;
@@ -3339,9 +3350,9 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		T min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
-			if (ObjectUtil.compare(min, numberArray[i]) > 0) {
-				min = numberArray[i];
+		for (T t : numberArray) {
+			if (ObjectUtil.compare(min, t) > 0) {
+				min = t;
 			}
 		}
 		return min;
@@ -3359,7 +3370,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		long min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3379,7 +3390,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		int min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3399,7 +3410,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		short min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3419,7 +3430,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		char min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3439,7 +3450,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		byte min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3459,7 +3470,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		double min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3479,7 +3490,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		float min = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (min > numberArray[i]) {
 				min = numberArray[i];
 			}
@@ -3500,7 +3511,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		T max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (ObjectUtil.compare(max, numberArray[i]) < 0) {
 				max = numberArray[i];
 			}
@@ -3520,7 +3531,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		long max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3540,7 +3551,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		int max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3560,7 +3571,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		short max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3580,7 +3591,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		char max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3600,7 +3611,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		byte max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3620,7 +3631,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		double max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}
@@ -3640,7 +3651,7 @@ public class ArrayUtil {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		float max = numberArray[0];
-		for (int i = 0; i < numberArray.length; i++) {
+		for (int i = 1; i < numberArray.length; i++) {
 			if (max < numberArray[i]) {
 				max = numberArray[i];
 			}

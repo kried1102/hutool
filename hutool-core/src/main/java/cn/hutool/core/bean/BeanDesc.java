@@ -1,13 +1,5 @@
 package cn.hutool.core.bean;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.CaseInsensitiveMap;
 import cn.hutool.core.util.BooleanUtil;
@@ -16,6 +8,14 @@ import cn.hutool.core.util.ModifierUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
+
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Bean信息描述做为BeanInfo替代方案，此对象持有JavaBean中的setters和getters等相关信息描述<br>
@@ -321,11 +321,21 @@ public class BeanDesc implements Serializable{
 		}
 
 		/**
-		 * 获取字段名
+		 * 获取字段名，如果存在Alias注解，读取注解的值作为名称
 		 * 
 		 * @return 字段名
 		 */
 		public String getFieldName() {
+			return ReflectUtil.getFieldName(this.field);
+		}
+
+		/**
+		 * 获取字段名称
+		 *
+		 * @return 字段名
+		 * @since 5.1.6
+		 */
+		public String getRawFieldName() {
 			return null == this.field ? null : this.field.getName();
 		}
 

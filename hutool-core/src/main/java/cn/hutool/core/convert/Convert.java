@@ -4,11 +4,13 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import cn.hutool.core.convert.impl.CollectionConverter;
-import cn.hutool.core.convert.impl.GenericEnumConverter;
+import cn.hutool.core.convert.impl.EnumConverter;
 import cn.hutool.core.convert.impl.MapConverter;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.lang.TypeReference;
@@ -132,6 +134,17 @@ public class Convert {
 	 */
 	public static Byte[] toByteArray(Object value) {
 		return convert(Byte[].class, value);
+	}
+
+	/**
+	 * 转换为Byte数组
+	 *
+	 * @param value 被转换的值
+	 * @return Byte数组
+	 * @since 5.1.1
+	 */
+	public static byte[] toPrimitiveByteArray(Object value) {
+		return convert(byte[].class, value);
 	}
 
 	/**
@@ -444,7 +457,47 @@ public class Convert {
 	public static Date toDate(Object value, Date defaultValue) {
 		return convertQuietly(Date.class, value, defaultValue);
 	}
+
+	/**
+	 * LocalDateTime<br>
+	 * 如果给定的值为空，或者转换失败，返回默认值<br>
+	 * 转换失败不会报错
+	 *
+	 * @param value 被转换的值
+	 * @param defaultValue 转换错误时的默认值
+	 * @return 结果
+	 * @since 5.0.7
+	 */
+	public static LocalDateTime toLocalDateTime(Object value, LocalDateTime defaultValue) {
+		return convertQuietly(LocalDateTime.class, value, defaultValue);
+	}
+
+	/**
+	 * 转换为LocalDateTime<br>
+	 * 如果给定的值为空，或者转换失败，返回<code>null</code><br>
+	 * 转换失败不会报错
+	 *
+	 * @param value 被转换的值
+	 * @return 结果
+	 */
+	public static LocalDateTime toLocalDateTime(Object value) {
+		return toLocalDateTime(value, null);
+	}
 	
+	/**
+	 * Instant<br>
+	 * 如果给定的值为空，或者转换失败，返回默认值<br>
+	 * 转换失败不会报错
+	 *
+	 * @param value 被转换的值
+	 * @param defaultValue 转换错误时的默认值
+	 * @return 结果
+	 * @since 5.0.7
+	 */
+	public static Date toInstant(Object value, Date defaultValue) {
+		return convertQuietly(Instant.class, value, defaultValue);
+	}
+
 	/**
 	 * 转换为Date<br>
 	 * 如果给定的值为空，或者转换失败，返回<code>null</code><br>
@@ -457,7 +510,7 @@ public class Convert {
 	public static Date toDate(Object value) {
 		return toDate(value, null);
 	}
-
+	
 	/**
 	 * 转换为Enum对象<br>
 	 * 如果给定的值为空，或者转换失败，返回默认值<br>
@@ -468,8 +521,9 @@ public class Convert {
 	 * @param defaultValue 默认值
 	 * @return Enum
 	 */
+	@SuppressWarnings("unchecked")
 	public static <E extends Enum<E>> E toEnum(Class<E> clazz, Object value, E defaultValue) {
-		return (new GenericEnumConverter<>(clazz)).convertQuietly(value, defaultValue);
+		return (E) (new EnumConverter(clazz)).convertQuietly(value, defaultValue);
 	}
 
 	/**
@@ -881,7 +935,7 @@ public class Convert {
 	 * @since 3.0.9
 	 */
 	public static String numberToWord(Number number) {
-		return NumberWordFormater.format(number);
+		return NumberWordFormatter.format(number);
 	}
 	
 	/**
@@ -893,7 +947,7 @@ public class Convert {
 	 * @since 3.2.3
 	 */
 	public static String numberToChinese(double number, boolean isUseTraditonal) {
-		return NumberChineseFormater.format(number, isUseTraditonal);
+		return NumberChineseFormatter.format(number, isUseTraditonal);
 	}
 	
 	/**
@@ -907,7 +961,7 @@ public class Convert {
 		if(null == n) {
 			return "零";
 		}
-		return NumberChineseFormater.format(n.doubleValue(), true, true);
+		return NumberChineseFormatter.format(n.doubleValue(), true, true);
 	}
 	
 	// -------------------------------------------------------------------------- 数字转换

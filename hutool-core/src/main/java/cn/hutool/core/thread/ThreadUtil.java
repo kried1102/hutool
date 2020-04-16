@@ -6,7 +6,6 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -48,7 +47,11 @@ public class ThreadUtil {
 	 * @return ExecutorService
 	 */
 	public static ExecutorService newSingleExecutor() {
-		return Executors.newSingleThreadExecutor();
+		return ExecutorBuilder.create()//
+				.setCorePoolSize(1)//
+				.setMaxPoolSize(1)//
+				.setKeepAliveTime(0)//
+				.buildFinalizable();
 	}
 
 	/**
@@ -101,13 +104,8 @@ public class ThreadUtil {
 	 * @param isDaemon 是否守护线程。守护线程会在主线程结束后自动结束
 	 * @return 执行的方法体
 	 */
-	public static Runnable excAsync(final Runnable runnable, boolean isDaemon) {
-		Thread thread = new Thread() {
-			@Override
-			public void run() {
-				runnable.run();
-			}
-		};
+	public static Runnable execAsync(final Runnable runnable, boolean isDaemon) {
+		Thread thread = new Thread(runnable);
 		thread.setDaemon(isDaemon);
 		thread.start();
 
@@ -437,6 +435,7 @@ public class ThreadUtil {
 	 * @param obj 对象所在线程
 	 * @since 4.5.6
 	 */
+	@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 	public static void sync(Object obj) {
 		synchronized (obj) {
 			try {

@@ -8,7 +8,7 @@
 
 	<groupId>cn.hutool</groupId>
 	<artifactId>hutool-parent</artifactId>
-	<version>5.0.4</version>
+	<version>5.3.0</version>
 	<name>hutool</name>
 	<description>提供丰富的Java工具方法</description>
 	<url>https://github.com/looly/hutool</url>
@@ -42,8 +42,8 @@
 
 		<!-- versions -->
 		<compile.version>8</compile.version>
-		<junit.version>4.13-rc-1</junit.version>
-		<lombok.version>1.18.10</lombok.version>
+		<junit.version>4.13</junit.version>
+		<lombok.version>1.18.12</lombok.version>
 	</properties>
 
 	<dependencies>
@@ -134,7 +134,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
-						<version>3.1.0</version>
+						<version>3.2.1</version>
 						<executions>
 							<execution>
 								<id>oss</id>

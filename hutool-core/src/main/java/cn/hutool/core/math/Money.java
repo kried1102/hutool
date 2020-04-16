@@ -77,7 +77,7 @@ public class Money implements Serializable, Comparable<Money> {
 	/**
 	 * 币种。
 	 */
-	private Currency currency;
+	private final Currency currency;
 
 	// 构造器 ====================================================
 
@@ -776,6 +776,7 @@ public class Money implements Serializable, Comparable<Money> {
 	/**
 	 * 生成本对象的缺省字符串表示
 	 */
+	@Override
 	public String toString() {
 		return getAmount().toString();
 	}

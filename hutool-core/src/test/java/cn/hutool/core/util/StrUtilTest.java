@@ -1,11 +1,10 @@
 package cn.hutool.core.util;
 
-import java.util.List;
-
+import cn.hutool.core.lang.Dict;
 import org.junit.Assert;
 import org.junit.Test;
 
-import cn.hutool.core.lang.Dict;
+import java.util.List;
 
 /**
  * 字符串工具类单元测试
@@ -57,6 +56,9 @@ public class StrUtilTest {
 		Assert.assertEquals(5, split.size());
 		// 测试去掉两边空白符是否生效
 		Assert.assertEquals("b", split.get(1));
+
+		final String[] strings = StrUtil.splitToArray("abc/", '/');
+		Assert.assertEquals(2, strings.length);
 	}
 
 	@Test
@@ -217,6 +219,20 @@ public class StrUtilTest {
 		String a = "abcderghigh";
 		String pre = StrUtil.sub(a, -5, a.length());
 		Assert.assertEquals("ghigh", pre);
+	}
+
+	@Test
+	public void subByCodePointTest() {
+		// 🤔👍🍓🤔
+		String test = "\uD83E\uDD14\uD83D\uDC4D\uD83C\uDF53\uD83E\uDD14";
+
+		// 不正确的子字符串
+		String wrongAnswer = StrUtil.sub(test, 0, 3);
+		Assert.assertNotEquals("\uD83E\uDD14\uD83D\uDC4D\uD83C\uDF53", wrongAnswer);
+
+		// 正确的子字符串
+		String rightAnswer = StrUtil.subByCodePoint(test, 0, 3);
+		Assert.assertEquals("\uD83E\uDD14\uD83D\uDC4D\uD83C\uDF53", rightAnswer);
 	}
 	
 	@Test
@@ -404,6 +420,17 @@ public class StrUtilTest {
 		Assert.assertNull(StrUtil.padAfter(null, 10, "ABC"));
 		Assert.assertEquals("1AB", StrUtil.padAfter("1", 3, "ABC"));
 		Assert.assertEquals("23", StrUtil.padAfter("123", 2, "ABC"));
+	}
+
+	@Test
+	public void subBetweenAllTest() {
+		Assert.assertArrayEquals(new String[]{"yz","abc"},StrUtil.subBetweenAll("saho[yz]fdsadp[abc]a","[","]"));
+		Assert.assertArrayEquals(new String[]{"abc"}, StrUtil.subBetweenAll("saho[yzfdsadp[abc]a]","[","]"));
+		Assert.assertArrayEquals(new String[]{"abc", "abc"}, StrUtil.subBetweenAll("yabczyabcz","y","z"));
+		Assert.assertArrayEquals(new String[0], StrUtil.subBetweenAll(null,"y","z"));
+		Assert.assertArrayEquals(new String[0], StrUtil.subBetweenAll("","y","z"));
+		Assert.assertArrayEquals(new String[0], StrUtil.subBetweenAll("abc",null,"z"));
+		Assert.assertArrayEquals(new String[0], StrUtil.subBetweenAll("abc","y",null));
 	}
 	
 }

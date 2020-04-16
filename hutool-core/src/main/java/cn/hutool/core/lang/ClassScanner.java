@@ -77,10 +77,10 @@ public class ClassScanner implements Serializable {
 	}
 
 	/**
-	 * 扫描指定包路径下所有指定类或接口的子类或实现类
+	 * 扫描指定包路径下所有指定类或接口的子类或实现类，不包括指定父类本身
 	 *
 	 * @param packageName 包路径
-	 * @param superClass  父类或接口
+	 * @param superClass  父类或接口（不包括）
 	 * @return 类集合
 	 */
 	public static Set<Class<?>> scanPackageBySuper(String packageName, final Class<?> superClass) {
@@ -244,8 +244,11 @@ public class ClassScanner implements Serializable {
 				}
 			}
 		} else if (file.isDirectory()) {
-			for (File subFile : file.listFiles()) {
-				scanFile(subFile, (null == rootDir) ? subPathBeforePackage(file) : rootDir);
+			final File[] files = file.listFiles();
+			if(null != files){
+				for (File subFile : files) {
+					scanFile(subFile, (null == rootDir) ? subPathBeforePackage(file) : rootDir);
+				}
 			}
 		}
 	}

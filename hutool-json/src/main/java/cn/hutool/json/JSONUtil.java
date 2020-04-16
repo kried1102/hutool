@@ -1,19 +1,5 @@
 package cn.hutool.json;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.reflect.Type;
-import java.nio.charset.Charset;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-
 import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.lang.TypeReference;
@@ -28,6 +14,21 @@ import cn.hutool.json.serialize.JSONArraySerializer;
 import cn.hutool.json.serialize.JSONDeserializer;
 import cn.hutool.json.serialize.JSONObjectSerializer;
 import cn.hutool.json.serialize.JSONSerializer;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import java.time.temporal.TemporalAccessor;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
  * JSON工具类
@@ -48,12 +49,34 @@ public final class JSONUtil {
 	}
 
 	/**
+	 * 创建JSONObject
+	 *
+	 * @param config JSON配置
+	 * @return JSONObject
+	 * @since 5.2.5
+	 */
+	public static JSONObject createObj(JSONConfig config) {
+		return new JSONObject(config);
+	}
+
+	/**
 	 * 创建 JSONArray
 	 *
 	 * @return JSONArray
 	 */
 	public static JSONArray createArray() {
 		return new JSONArray();
+	}
+
+	/**
+	 * 创建 JSONArray
+	 *
+	 * @param config JSON配置
+	 * @return JSONArray
+	 * @since 5.2.5
+	 */
+	public static JSONArray createArray(JSONConfig config) {
+		return new JSONArray(config);
 	}
 
 	/**
@@ -650,7 +673,10 @@ public final class JSONUtil {
 			}
 
 			// 日期类型原样保存，便于格式化
-			if (object instanceof Date || object instanceof Calendar) {
+			if (object instanceof Date
+					|| object instanceof Calendar
+					|| object instanceof TemporalAccessor
+			) {
 				return object;
 			}
 			// 枚举类保存其字符串形式（4.0.2新增）

@@ -1,13 +1,5 @@
 package cn.hutool.http.test;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Console;
 import cn.hutool.core.util.CharsetUtil;
@@ -15,6 +7,13 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class HttpUtilTest {
 
@@ -71,7 +70,7 @@ public class HttpUtilTest {
 		FileUtil.writeBytes(str, "f:/test/2D.jpg");
 		Console.log(str);
 	}
-	
+
 	@Test
 	@Ignore
 	public void get12306Test() {
@@ -119,7 +118,7 @@ public class HttpUtilTest {
 		String paramsStr = "uuuu=0&a=b&c=3Ddsssss555555";
 		Map<String, List<String>> map = HttpUtil.decodeParams(paramsStr, CharsetUtil.UTF_8);
 
-		String encodedParams = HttpUtil.toParams((Map<String, List<String>>) map);
+		String encodedParams = HttpUtil.toParams(map);
 		Assert.assertEquals(paramsStr, encodedParams);
 	}
 
@@ -164,6 +163,16 @@ public class HttpUtilTest {
 		paramsStr = "a=bbb&c=你好&哈喽&";
 		encode = HttpUtil.encodeParams(paramsStr, CharsetUtil.CHARSET_UTF_8);
 		Assert.assertEquals("a=bbb&c=%E4%BD%A0%E5%A5%BD&%E5%93%88%E5%96%BD=", encode);
+
+		// URL原样输出
+		paramsStr = "https://www.hutool.cn/";
+		encode = HttpUtil.encodeParams(paramsStr, CharsetUtil.CHARSET_UTF_8);
+		Assert.assertEquals(paramsStr, encode);
+
+		// URL原样输出
+		paramsStr = "https://www.hutool.cn/?";
+		encode = HttpUtil.encodeParams(paramsStr, CharsetUtil.CHARSET_UTF_8);
+		Assert.assertEquals("https://www.hutool.cn/", encode);
 	}
 
 	@Test
@@ -220,7 +229,7 @@ public class HttpUtilTest {
 	@Test
 	@Ignore
 	public void patchTest() {
-		String body = HttpRequest.post("https://www.baidu.com").execute().body();
+		String body = HttpRequest.patch("https://www.baidu.com").execute().body();
 		Console.log(body);
 	}
 

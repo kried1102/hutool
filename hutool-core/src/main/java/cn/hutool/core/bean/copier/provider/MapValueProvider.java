@@ -1,12 +1,12 @@
 package cn.hutool.core.bean.copier.provider;
 
-import java.lang.reflect.Type;
-import java.util.Map;
-
 import cn.hutool.core.bean.copier.ValueProvider;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.map.CaseInsensitiveMap;
 import cn.hutool.core.util.StrUtil;
+
+import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
  * Map值提供者
@@ -16,7 +16,7 @@ import cn.hutool.core.util.StrUtil;
  */
 public class MapValueProvider implements ValueProvider<String> {
 
-	private Map<?, ?> map;
+	private final Map<?, ?> map;
 
 	/**
 	 * 构造
@@ -41,7 +41,7 @@ public class MapValueProvider implements ValueProvider<String> {
 			//检查下划线模式
 			value = map.get(StrUtil.toUnderlineCase(key));
 		}
-		
+
 		return Convert.convert(valueType, value);
 	}
 

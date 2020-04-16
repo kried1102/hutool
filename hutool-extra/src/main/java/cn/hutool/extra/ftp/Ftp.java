@@ -1,5 +1,14 @@
 package cn.hutool.extra.ftp;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.StrUtil;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPReply;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,16 +16,6 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPReply;
-
-import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.StrUtil;
 
 /**
  * FTP客户端封装<br>
@@ -339,7 +338,7 @@ public class Ftp extends AbstractFtp {
 			childPath = StrUtil.format("{}/{}", dirPath, name);
 			if (ftpFile.isDirectory()) {
 				// 上级和本级目录除外
-				if (false == name.equals(".") && false == name.equals("..")) {
+				if (false == ".".equals(name) && false == "..".equals(name)) {
 					delDir(childPath);
 				}
 			} else {
@@ -364,14 +363,14 @@ public class Ftp extends AbstractFtp {
 	 * 3. path为绝对路径则上传到此路径
 	 * </pre>
 	 * 
-	 * @param path 服务端路径，可以为{@code null} 或者相对路径或绝对路径
+	 * @param destPath 服务端路径，可以为{@code null} 或者相对路径或绝对路径
 	 * @param file 文件
 	 * @return 是否上传成功
 	 */
 	@Override
-	public boolean upload(String path, File file) {
+	public boolean upload(String destPath, File file) {
 		Assert.notNull(file, "file to upload is null !");
-		return upload(path, file.getName(), file);
+		return upload(destPath, file.getName(), file);
 	}
 
 	/**
