@@ -5,16 +5,20 @@ import cn.hutool.core.lang.Filter;
 import cn.hutool.core.lang.func.Func1;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 /**
  * {@link Iterable} 和 {@link Iterator} 相关工具类
@@ -457,6 +461,122 @@ public class IterUtil {
 	}
 
 	/**
+	 * 将列表转成值为List的HashMap
+	 *
+	 * @param iterable  值列表
+	 * @param keyMapper Map的键映射
+	 * @param <K>       键类型
+	 * @param <V>       值类型
+	 * @return HashMap
+	 * @since 5.3.6
+	 */
+	public static <K, V> Map<K, List<V>> toListMap(Iterable<V> iterable, Function<V, K> keyMapper) {
+		return toListMap(iterable, keyMapper, v -> v);
+	}
+
+	/**
+	 * 将列表转成值为List的HashMap
+	 *
+	 * @param iterable    值列表
+	 * @param keyMapper   Map的键映射
+	 * @param valueMapper Map中List的值映射
+	 * @param <T>         列表值类型
+	 * @param <K>         键类型
+	 * @param <V>         值类型
+	 * @return HashMap
+	 * @since 5.3.6
+	 */
+	public static <T, K, V> Map<K, List<V>> toListMap(Iterable<T> iterable, Function<T, K> keyMapper, Function<T, V> valueMapper) {
+		return toListMap(MapUtil.newHashMap(), iterable, keyMapper, valueMapper);
+	}
+
+	/**
+	 * 将列表转成值为List的HashMap
+	 *
+	 * @param resultMap   结果Map，可自定义结果Map类型
+	 * @param iterable    值列表
+	 * @param keyMapper   Map的键映射
+	 * @param valueMapper Map中List的值映射
+	 * @param <T>         列表值类型
+	 * @param <K>         键类型
+	 * @param <V>         值类型
+	 * @return HashMap
+	 * @since 5.3.6
+	 */
+	public static <T, K, V> Map<K, List<V>> toListMap(Map<K, List<V>> resultMap, Iterable<T> iterable, Function<T, K> keyMapper, Function<T, V> valueMapper) {
+		if (null == resultMap) {
+			resultMap = MapUtil.newHashMap();
+		}
+		if (ObjectUtil.isNull(iterable)) {
+			return resultMap;
+		}
+
+		for (T value : iterable) {
+			resultMap.computeIfAbsent(keyMapper.apply(value), k -> new ArrayList<>()).add(valueMapper.apply(value));
+		}
+
+		return resultMap;
+	}
+
+	/**
+	 * 将列表转成HashMap
+	 *
+	 * @param iterable  值列表
+	 * @param keyMapper Map的键映射
+	 * @param <K>       键类型
+	 * @param <V>       值类型
+	 * @return HashMap
+	 * @since 5.3.6
+	 */
+	public static <K, V> Map<K, V> toMap(Iterable<V> iterable, Function<V, K> keyMapper) {
+		return toMap(iterable, keyMapper, v -> v);
+	}
+
+	/**
+	 * 将列表转成HashMap
+	 *
+	 * @param iterable    值列表
+	 * @param keyMapper   Map的键映射
+	 * @param valueMapper Map的值映射
+	 * @param <T>         列表值类型
+	 * @param <K>         键类型
+	 * @param <V>         值类型
+	 * @return HashMap
+	 * @since 5.3.6
+	 */
+	public static <T, K, V> Map<K, V> toMap(Iterable<T> iterable, Function<T, K> keyMapper, Function<T, V> valueMapper) {
+		return toMap(MapUtil.newHashMap(), iterable, keyMapper, valueMapper);
+	}
+
+	/**
+	 * 将列表转成Map
+	 *
+	 * @param resultMap   结果Map，通过传入map对象决定结果的Map类型
+	 * @param iterable    值列表
+	 * @param keyMapper   Map的键映射
+	 * @param valueMapper Map的值映射
+	 * @param <T>         列表值类型
+	 * @param <K>         键类型
+	 * @param <V>         值类型
+	 * @return HashMap
+	 * @since 5.3.6
+	 */
+	public static <T, K, V> Map<K, V> toMap(Map<K, V> resultMap, Iterable<T> iterable, Function<T, K> keyMapper, Function<T, V> valueMapper) {
+		if (null == resultMap) {
+			resultMap = MapUtil.newHashMap();
+		}
+		if (ObjectUtil.isNull(iterable)) {
+			return resultMap;
+		}
+
+		for (T value : iterable) {
+			resultMap.put(keyMapper.apply(value), valueMapper.apply(value));
+		}
+
+		return resultMap;
+	}
+
+	/**
 	 * Iterator转List<br>
 	 * 不判断，直接生成新的List
 	 *
@@ -675,5 +795,68 @@ public class IterUtil {
 			}
 		}
 		return map;
+	}
+
+	/**
+	 * 返回一个空Iterator
+	 *
+	 * @param <T> 元素类型
+	 * @return 空Iterator
+	 * @see Collections#emptyIterator()
+	 * @since 5.3.1
+	 */
+	public static <T> Iterator<T> empty() {
+		return Collections.emptyIterator();
+	}
+
+	/**
+	 * 按照给定函数，转换{@link Iterator}为另一种类型的{@link Iterator}
+	 *
+	 * @param <F>      源元素类型
+	 * @param <T>      目标元素类型
+	 * @param iterator 源{@link Iterator}
+	 * @param function 转换函数
+	 * @return 转换后的{@link Iterator}
+	 * @since 5.4.3
+	 */
+	public static <F, T> Iterator<T> trans(Iterator<F> iterator, Function<? super F, ? extends T> function) {
+		return new TransIter<>(iterator, function);
+	}
+
+	/**
+	 * 返回 Iterable 对象的元素数量
+	 *
+	 * @param iterable Iterable对象
+	 * @return Iterable对象的元素数量
+	 * @since 5.5.0
+	 */
+	public static int size(final Iterable<?> iterable) {
+		if(null == iterable){
+			return 0;
+		}
+
+		if (iterable instanceof Collection<?>) {
+			return ((Collection<?>) iterable).size();
+		} else {
+			return size(iterable.iterator());
+		}
+	}
+
+	/**
+	 * 返回 Iterator 对象的元素数量
+	 *
+	 * @param iterator Iterator对象
+	 * @return Iterator对象的元素数量
+	 * @since 5.5.0
+	 */
+	public static int size(final Iterator<?> iterator) {
+		int size = 0;
+		if (iterator != null) {
+			while (iterator.hasNext()) {
+				iterator.next();
+				size++;
+			}
+		}
+		return size;
 	}
 }

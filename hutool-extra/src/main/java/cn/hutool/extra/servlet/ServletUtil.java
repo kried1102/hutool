@@ -10,6 +10,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.map.CaseInsensitiveMap;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.net.multipart.MultipartFormData;
 import cn.hutool.core.net.multipart.UploadSetting;
@@ -26,6 +27,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,8 +92,8 @@ public class ServletUtil {
 	 * @since 4.0.2
 	 */
 	public static String getBody(ServletRequest request) {
-		try {
-			return IoUtil.read(request.getReader());
+		try(final BufferedReader reader = request.getReader()) {
+			return IoUtil.read(reader);
 		} catch (IOException e) {
 			throw new IORuntimeException(e);
 		}
@@ -418,6 +420,11 @@ public class ServletUtil {
 	 * @return Cookie map
 	 */
 	public static Map<String, Cookie> readCookieMap(HttpServletRequest httpServletRequest) {
+		final Cookie[] cookies = httpServletRequest.getCookies();
+		if(ArrayUtil.isEmpty(cookies)){
+			return MapUtil.empty();
+		}
+
 		return IterUtil.toMap(
 				new ArrayIter<>(httpServletRequest.getCookies()),
 				new CaseInsensitiveMap<>(),

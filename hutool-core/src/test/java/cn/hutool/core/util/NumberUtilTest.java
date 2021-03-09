@@ -1,10 +1,12 @@
 package cn.hutool.core.util;
 
+import cn.hutool.core.convert.Convert;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Set;
 
 /**
  * {@link NumberUtil} 单元测试类
@@ -187,6 +189,12 @@ public class NumberUtilTest {
 				
 		BigDecimal bigDecimal = NumberUtil.toBigDecimal(a);
 		Assert.assertEquals("3.14", bigDecimal.toString());
+
+		bigDecimal = NumberUtil.toBigDecimal("1,234.55");
+		Assert.assertEquals("1234.55", bigDecimal.toString());
+
+		bigDecimal = NumberUtil.toBigDecimal("1,234.56D");
+		Assert.assertEquals("1234.56", bigDecimal.toString());
 	}
 
 	@Test
@@ -203,37 +211,83 @@ public class NumberUtilTest {
 	
 	@Test
 	public void parseIntTest() {
-		int v1 = NumberUtil.parseInt("0xFF");
-		Assert.assertEquals(255, v1);
-		int v2 = NumberUtil.parseInt("010");
-		Assert.assertEquals(10, v2);
-		int v3 = NumberUtil.parseInt("10");
-		Assert.assertEquals(10, v3);
-		int v4 = NumberUtil.parseInt("   ");
-		Assert.assertEquals(0, v4);
-		int v5 = NumberUtil.parseInt("10F");
-		Assert.assertEquals(10, v5);
-		int v6 = NumberUtil.parseInt("22.4D");
-		Assert.assertEquals(22, v6);
+		int number = NumberUtil.parseInt("0xFF");
+		Assert.assertEquals(255, number);
 
-		int v7 = NumberUtil.parseInt("0");
-		Assert.assertEquals(0, v7);
+		// 0开头
+		number = NumberUtil.parseInt("010");
+		Assert.assertEquals(10, number);
+
+		number = NumberUtil.parseInt("10");
+		Assert.assertEquals(10, number);
+
+		number = NumberUtil.parseInt("   ");
+		Assert.assertEquals(0, number);
+
+		number = NumberUtil.parseInt("10F");
+		Assert.assertEquals(10, number);
+
+		number = NumberUtil.parseInt("22.4D");
+		Assert.assertEquals(22, number);
+
+		number = NumberUtil.parseInt("22.6D");
+		Assert.assertEquals(22, number);
+
+		number = NumberUtil.parseInt("0");
+		Assert.assertEquals(0, number);
+
+		number = NumberUtil.parseInt(".123");
+		Assert.assertEquals(0, number);
+	}
+
+	@Test
+	public void parseIntTest2() {
+		// from 5.4.8 issue#I23ORQ@Gitee
+		// 千位分隔符去掉
+		int v1 = NumberUtil.parseInt("1,482.00");
+		Assert.assertEquals(1482, v1);
+	}
+
+	@Test
+	public void parseNumberTest() {
+		// from 5.4.8 issue#I23ORQ@Gitee
+		// 千位分隔符去掉
+		int v1 = NumberUtil.parseNumber("1,482.00").intValue();
+		Assert.assertEquals(1482, v1);
+
+		Number v2 = NumberUtil.parseNumber("1,482.00D");
+		Assert.assertEquals(1482L, v2);
 	}
 	
 	@Test
 	public void parseLongTest() {
-		long v1 = NumberUtil.parseLong("0xFF");
-		Assert.assertEquals(255L, v1);
-		long v2 = NumberUtil.parseLong("010");
-		Assert.assertEquals(10L, v2);
-		long v3 = NumberUtil.parseLong("10");
-		Assert.assertEquals(10L, v3);
-		long v4 = NumberUtil.parseLong("   ");
-		Assert.assertEquals(0L, v4);
-		long v5 = NumberUtil.parseLong("10F");
-		Assert.assertEquals(10L, v5);
-		long v6 = NumberUtil.parseLong("22.4D");
-		Assert.assertEquals(22L, v6);
+		long number = NumberUtil.parseLong("0xFF");
+		Assert.assertEquals(255, number);
+
+		// 0开头
+		number = NumberUtil.parseLong("010");
+		Assert.assertEquals(10, number);
+
+		number = NumberUtil.parseLong("10");
+		Assert.assertEquals(10, number);
+
+		number = NumberUtil.parseLong("   ");
+		Assert.assertEquals(0, number);
+
+		number = NumberUtil.parseLong("10F");
+		Assert.assertEquals(10, number);
+
+		number = NumberUtil.parseLong("22.4D");
+		Assert.assertEquals(22, number);
+
+		number = NumberUtil.parseLong("22.6D");
+		Assert.assertEquals(22, number);
+
+		number = NumberUtil.parseLong("0");
+		Assert.assertEquals(0, number);
+
+		number = NumberUtil.parseLong(".123");
+		Assert.assertEquals(0, number);
 	}
 
 	@Test
@@ -241,15 +295,48 @@ public class NumberUtilTest {
 		long factorial = NumberUtil.factorial(0);
 		Assert.assertEquals(1, factorial);
 
+		Assert.assertEquals(1L, NumberUtil.factorial(1));
+		Assert.assertEquals(1307674368000L, NumberUtil.factorial(15));
+		Assert.assertEquals(2432902008176640000L, NumberUtil.factorial(20));
+
 		factorial = NumberUtil.factorial(5, 0);
 		Assert.assertEquals(120, factorial);
 		factorial = NumberUtil.factorial(5, 1);
 		Assert.assertEquals(120, factorial);
+    
+		Assert.assertEquals(5, NumberUtil.factorial(5, 4));
+		Assert.assertEquals(2432902008176640000L, NumberUtil.factorial(20, 0));
 	}
 
 	@Test
 	public void mulTest(){
 		final BigDecimal mul = NumberUtil.mul(new BigDecimal("10"), null);
 		Assert.assertEquals(BigDecimal.ZERO, mul);
+	}
+	
+	
+	@Test
+	public void isPowerOfTwoTest() {
+		Assert.assertFalse(NumberUtil.isPowerOfTwo(-1));
+		Assert.assertTrue(NumberUtil.isPowerOfTwo(16));
+		Assert.assertTrue(NumberUtil.isPowerOfTwo(65536));
+		Assert.assertTrue(NumberUtil.isPowerOfTwo(1));
+		Assert.assertFalse(NumberUtil.isPowerOfTwo(17));
+	}
+
+	@Test
+	public void generateRandomNumberTest(){
+		final int[] ints = NumberUtil.generateRandomNumber(10, 20, 5);
+		Assert.assertEquals(5, ints.length);
+		final Set<?> set = Convert.convert(Set.class, ints);
+		Assert.assertEquals(5, set.size());
+	}
+
+	@Test
+	public void toStrTest(){
+		Assert.assertEquals("1", NumberUtil.toStr(new BigDecimal("1.0000000000")));
+		Assert.assertEquals("0", NumberUtil.toStr(NumberUtil.sub(new BigDecimal("9600.00000"), new BigDecimal("9600.00000"))));
+		Assert.assertEquals("0", NumberUtil.toStr(NumberUtil.sub(new BigDecimal("9600.0000000000"), new BigDecimal("9600.000000"))));
+		Assert.assertEquals("0", NumberUtil.toStr(new BigDecimal("9600.00000").subtract(new BigDecimal("9600.000000000"))));
 	}
 }

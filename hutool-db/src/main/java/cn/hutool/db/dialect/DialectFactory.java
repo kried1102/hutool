@@ -18,12 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 方言工厂类
- * 
+ *
  * @author loolly
  *
  */
 public class DialectFactory {
-	
+
 	/** JDBC 驱动 MySQL */
 	public static final String DRIVER_MYSQL = "com.mysql.jdbc.Driver";
 	/** JDBC 驱动 MySQL，在6.X版本中变动驱动类名，且使用SPI机制 */
@@ -45,23 +45,23 @@ public class DialectFactory {
 	/** JDBC 驱动 H2 */
 	public static final String DRIVER_H2 = "org.h2.Driver";
 	/** JDBC 驱动 Derby */
-	public static final String DRIVER_DERBY = "org.apache.derby.jdbc.ClientDriver";
-	/** JDBC 驱动 Derby嵌入式 */
-	public static final String DRIVER_DERBY_EMBEDDED = "org.apache.derby.jdbc.EmbeddedDriver";
+	public static final String DRIVER_DERBY = "org.apache.derby.jdbc.AutoloadedDriver";
 	/** JDBC 驱动 HSQLDB */
 	public static final String DRIVER_HSQLDB = "org.hsqldb.jdbc.JDBCDriver";
 	/** JDBC 驱动 达梦7 */
 	public static final String DRIVER_DM7 = "dm.jdbc.driver.DmDriver";
-	
+	/** JDBC 驱动 人大金仓 */
+	public static final String DRIVER_KINGBASE8 = "com.kingbase8.Driver";
+
 	private static final Map<DataSource, Dialect> DIALECT_POOL = new ConcurrentHashMap<>();
 
 	private DialectFactory() {
 	}
-	
+
 	/**
 	 * 根据驱动名创建方言<br>
 	 * 驱动名是不分区大小写完全匹配的
-	 * 
+	 *
 	 * @param driverName JDBC驱动类名
 	 * @return 方言
 	 */
@@ -74,7 +74,7 @@ public class DialectFactory {
 	/**
 	 * 根据驱动名创建方言<br>
 	 * 驱动名是不分区大小写完全匹配的
-	 * 
+	 *
 	 * @param driverName JDBC驱动类名
 	 * @return 方言
 	 */
@@ -100,7 +100,7 @@ public class DialectFactory {
 
 	/**
 	 * 通过JDBC URL等信息识别JDBC驱动名
-	 * 
+	 *
 	 * @param nameContainsProductInfo 包含数据库标识的字符串
 	 * @return 驱动
 	 */
@@ -126,23 +126,23 @@ public class DialectFactory {
 			driver = DRIVER_HIVE;
 		} else if (nameContainsProductInfo.contains("h2")) {
 			driver = DRIVER_H2;
-		} else if (nameContainsProductInfo.startsWith("jdbc:derby://")) {
-			// Derby数据库网络连接方式
-			driver = DRIVER_DERBY;
 		} else if (nameContainsProductInfo.contains("derby")) {
 			// 嵌入式Derby数据库
-			driver = DRIVER_DERBY_EMBEDDED;
+			driver = DRIVER_DERBY;
 		} else if (nameContainsProductInfo.contains("hsqldb")) {
 			// HSQLDB
 			driver = DRIVER_HSQLDB;
 		} else if (nameContainsProductInfo.contains("dm")) {
 			// 达梦7
 			driver = DRIVER_DM7;
+		} else if (nameContainsProductInfo.contains("kingbase8")) {
+			// 人大金仓8
+			driver = DRIVER_KINGBASE8;
 		}
 
 		return driver;
 	}
-	
+
 	/**
 	 * 获取共享方言
 	 * @param ds 数据源，每一个数据源对应一个唯一方言
@@ -166,7 +166,7 @@ public class DialectFactory {
 
 	/**
 	 * 创建方言
-	 * 
+	 *
 	 * @param ds 数据源
 	 * @return 方言
 	 */
@@ -176,7 +176,7 @@ public class DialectFactory {
 
 	/**
 	 * 创建方言
-	 * 
+	 *
 	 * @param conn 数据库连接对象
 	 * @return 方言
 	 */

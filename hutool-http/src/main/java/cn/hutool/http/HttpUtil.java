@@ -1,14 +1,14 @@
 package cn.hutool.http;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.collection.IterUtil;
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.io.FastByteArrayOutputStream;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.StreamProgress;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -23,13 +23,9 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 /**
@@ -55,7 +51,18 @@ public class HttpUtil {
 	 * @return 是否https
 	 */
 	public static boolean isHttps(String url) {
-		return url.toLowerCase().startsWith("https");
+		return url.toLowerCase().startsWith("https:");
+	}
+
+	/**
+	 * 检测是否http
+	 *
+	 * @param url URL
+	 * @return 是否http
+	 * @since 5.3.8
+	 */
+	public static boolean isHttp(String url) {
+		return url.toLowerCase().startsWith("http:");
 	}
 
 	/**
@@ -309,25 +316,111 @@ public class HttpUtil {
 	 * @since 4.0.4
 	 */
 	public static long downloadFile(String url, File destFile, int timeout, StreamProgress streamProgress) {
-		if (StrUtil.isBlank(url)) {
-			throw new NullPointerException("[url] is null!");
-		}
-		if (null == destFile) {
-			throw new NullPointerException("[destFile] is null!");
-		}
-		final HttpResponse response = HttpRequest.get(url).timeout(timeout).executeAsync();
-		if (false == response.isOk()) {
-			throw new HttpException("Server response error with status code: [{}]", response.getStatus());
-		}
-		return response.writeBody(destFile, streamProgress);
+		return requestDownloadFile(url, destFile, timeout).writeBody(destFile, streamProgress);
 	}
+	
+	/**
+	 * 下载远程文件
+	 *
+	 * @param url  请求的url
+	 * @param dest 目标文件或目录，当为目录时，取URL中的文件名，取不到使用编码后的URL做为文件名
+	 *
+	 * @return 下载的文件对象
+	 * @since 5.4.1
+	 */
+	public static File downloadFileFromUrl(String url, String dest) {
+		return downloadFileFromUrl(url, FileUtil.file(dest));
+	}
+	
+	/**
+	 * 下载远程文件
+	 *
+	 * @param url      请求的url
+	 * @param destFile 目标文件或目录，当为目录时，取URL中的文件名，取不到使用编码后的URL做为文件名
+	 *
+	 * @return 下载的文件对象
+	 * @since 5.4.1
+	 */
+	public static File downloadFileFromUrl(String url, File destFile) {
+		return downloadFileFromUrl(url, destFile, null);
+	}
+	
+	/**
+	 * 下载远程文件
+	 *
+	 * @param url      请求的url
+	 * @param destFile 目标文件或目录，当为目录时，取URL中的文件名，取不到使用编码后的URL做为文件名
+	 * @param timeout  超时，单位毫秒，-1表示默认超时
+	 *
+	 * @return 下载的文件对象
+	 * @since 5.4.1
+	 */
+	public static File downloadFileFromUrl(String url, File destFile, int timeout) {
+		return downloadFileFromUrl(url, destFile, timeout, null);
+	}
+	
+	/**
+	 * 下载远程文件
+	 *
+	 * @param url            请求的url
+	 * @param destFile       目标文件或目录，当为目录时，取URL中的文件名，取不到使用编码后的URL做为文件名
+	 * @param streamProgress 进度条
+	 *
+	 * @return 下载的文件对象
+	 * @since 5.4.1
+	 */
+	public static File downloadFileFromUrl(String url, File destFile, StreamProgress streamProgress) {
+		return downloadFileFromUrl(url, destFile, -1, streamProgress);
+	}
+	
+	/**
+	 * 下载远程文件
+	 *
+	 * @param url            请求的url
+	 * @param destFile       目标文件或目录，当为目录时，取URL中的文件名，取不到使用编码后的URL做为文件名
+	 * @param timeout        超时，单位毫秒，-1表示默认超时
+	 * @param streamProgress 进度条
+	 *
+	 * @return 下载的文件对象
+	 * @since 5.4.1
+	 */
+	public static File downloadFileFromUrl(String url, File destFile, int timeout, StreamProgress streamProgress) {
+		HttpResponse response = requestDownloadFile(url, destFile, timeout);
+		
+		final File outFile = response.completeFileNameFromHeader(destFile);
+		long writeBytes = response.writeBody(outFile, streamProgress);
+		return outFile;
+	}
+	
+	/**
+	 * 请求下载文件
+	 *
+	 * @param url      请求下载文件地址
+	 * @param destFile 目标目录或者目标文件
+	 * @param timeout  超时时间
+	 *
+	 * @return HttpResponse
+	 * @since 5.4.1
+	 */
+	private static HttpResponse requestDownloadFile(String url, File destFile, int timeout) {
+		Assert.notBlank(url, "[url] is blank !");
+		Assert.notNull(destFile, "[destFile] is null !");
 
+		final HttpResponse response = HttpRequest.get(url).timeout(timeout).executeAsync();
+		if (response.isOk()) {
+			return response;
+		}
+
+		throw new HttpException("Server response error with status code: [{}]", response.getStatus());
+	}
+	
 	/**
 	 * 下载远程文件
 	 *
 	 * @param url        请求的url
 	 * @param out        将下载内容写到输出流中 {@link OutputStream}
 	 * @param isCloseOut 是否关闭输出流
+	 *
 	 * @return 文件大小
 	 */
 	public static long download(String url, OutputStream out, boolean isCloseOut) {
@@ -350,16 +443,38 @@ public class HttpUtil {
 		if (null == out) {
 			throw new NullPointerException("[out] is null!");
 		}
-
+		
 		final HttpResponse response = HttpRequest.get(url).executeAsync();
-		if (false == response.isOk()) {
+		if (!response.isOk()) {
 			throw new HttpException("Server response error with status code: [{}]", response.getStatus());
 		}
 		return response.writeBody(out, isCloseOut, streamProgress);
 	}
+	
+	/**
+	 * 下载远程文件数据，支持30x跳转
+	 *
+	 * @param url 请求的url
+	 *
+	 * @return 文件数据
+	 *
+	 * @since 5.3.6
+	 */
+	public static byte[] downloadBytes(String url) {
+		if (StrUtil.isBlank(url)) {
+			throw new NullPointerException("[url] is null!");
+		}
+		
+		final HttpResponse response = HttpRequest.get(url)
+				.setFollowRedirects(true).executeAsync();
+		if (!response.isOk()) {
+			throw new HttpException("Server response error with status code: [{}]", response.getStatus());
+		}
+		return response.bodyBytes();
+	}
 
 	/**
-	 * 将Map形式的Form表单数据转换为Url参数形式，不做编码
+	 * 将Map形式的Form表单数据转换为Url参数形式，会自动url编码键和值
 	 *
 	 * @param paramMap 表单数据
 	 * @return url参数
@@ -390,44 +505,11 @@ public class HttpUtil {
 	 * </pre>
 	 *
 	 * @param paramMap 表单数据
-	 * @param charset  编码
+	 * @param charset  编码，null表示不encode键值对
 	 * @return url参数
 	 */
 	public static String toParams(Map<String, ?> paramMap, Charset charset) {
-		if (CollectionUtil.isEmpty(paramMap)) {
-			return StrUtil.EMPTY;
-		}
-		if (null == charset) {// 默认编码为系统编码
-			charset = CharsetUtil.CHARSET_UTF_8;
-		}
-
-		final StringBuilder sb = new StringBuilder();
-		boolean isFirst = true;
-		String key;
-		Object value;
-		String valueStr;
-		for (Entry<String, ?> item : paramMap.entrySet()) {
-			if (isFirst) {
-				isFirst = false;
-			} else {
-				sb.append("&");
-			}
-			key = item.getKey();
-			value = item.getValue();
-			if (value instanceof Iterable) {
-				value = CollUtil.join((Iterable<?>) value, ",");
-			} else if (value instanceof Iterator) {
-				value = IterUtil.join((Iterator<?>) value, ",");
-			}
-			valueStr = Convert.toStr(value);
-			if (StrUtil.isNotEmpty(key)) {
-				sb.append(URLUtil.encodeAll(key, charset)).append("=");
-				if (StrUtil.isNotEmpty(valueStr)) {
-					sb.append(URLUtil.encodeAll(valueStr, charset));
-				}
-			}
-		}
-		return sb.toString();
+		return URLUtil.buildQuery(paramMap, charset);
 	}
 
 	/**
@@ -437,7 +519,7 @@ public class HttpUtil {
 	 * <p>注意，此方法只能标准化整个URL，并不适合于单独编码参数值</p>
 	 *
 	 * @param urlWithParams url和参数，可以包含url本身，也可以单独参数
-	 * @param charset   编码
+	 * @param charset       编码
 	 * @return 编码后的url和参数
 	 * @since 4.0.1
 	 */
@@ -457,10 +539,10 @@ public class HttpUtil {
 				// 无参数，返回url
 				return urlPart;
 			}
-		} else if(false == StrUtil.contains(urlWithParams, '=')){
+		} else if (false == StrUtil.contains(urlWithParams, '=')) {
 			// 无参数的URL
 			return urlWithParams;
-		}else {
+		} else {
 			// 无URL的参数
 			paramPart = urlWithParams;
 		}
@@ -536,8 +618,10 @@ public class HttpUtil {
 	 * @param charset   字符集
 	 * @return 参数Map
 	 * @since 4.0.2
+	 * @deprecated 请使用 {@link #decodeParamMap(String, Charset)}
 	 */
-	public static HashMap<String, String> decodeParamMap(String paramsStr, String charset) {
+	@Deprecated
+	public static Map<String, String> decodeParamMap(String paramsStr, String charset) {
 		return decodeParamMap(paramsStr, CharsetUtil.charset(charset));
 	}
 
@@ -549,15 +633,12 @@ public class HttpUtil {
 	 * @return 参数Map
 	 * @since 5.2.6
 	 */
-	public static HashMap<String, String> decodeParamMap(String paramsStr, Charset charset) {
-		final Map<String, List<String>> paramsMap = decodeParams(paramsStr, charset);
-		final HashMap<String, String> result = MapUtil.newHashMap(paramsMap.size());
-		List<String> valueList;
-		for (Entry<String, List<String>> entry : paramsMap.entrySet()) {
-			valueList = entry.getValue();
-			result.put(entry.getKey(), CollUtil.isEmpty(valueList) ? null : valueList.get(0));
+	public static Map<String, String> decodeParamMap(String paramsStr, Charset charset) {
+		final Map<CharSequence, CharSequence> queryMap = UrlQuery.of(paramsStr, charset).getQueryMap();
+		if (MapUtil.isEmpty(queryMap)) {
+			return MapUtil.empty();
 		}
-		return result;
+		return Convert.toMap(String.class, String.class, queryMap);
 	}
 
 	/**
@@ -580,56 +661,17 @@ public class HttpUtil {
 	 * @since 5.2.6
 	 */
 	public static Map<String, List<String>> decodeParams(String paramsStr, Charset charset) {
-		if (StrUtil.isBlank(paramsStr)) {
-			return Collections.emptyMap();
+		final Map<CharSequence, CharSequence> queryMap = UrlQuery.of(paramsStr, charset).getQueryMap();
+		if (MapUtil.isEmpty(queryMap)) {
+			return MapUtil.empty();
 		}
 
-		// 去掉Path部分
-		int pathEndPos = paramsStr.indexOf('?');
-		if (pathEndPos > -1) {
-			paramsStr = StrUtil.subSuf(paramsStr, pathEndPos + 1);
-			if (StrUtil.isBlank(paramsStr)) {
-				return Collections.emptyMap();
-			}
-		}
-
-		final int len = paramsStr.length();
 		final Map<String, List<String>> params = new LinkedHashMap<>();
-		String name = null;
-		int pos = 0; // 未处理字符开始位置
-		int i; // 未处理字符结束位置
-		char c; // 当前字符
-		for (i = 0; i < len; i++) {
-			c = paramsStr.charAt(i);
-			if (c == '=') { // 键值对的分界点
-				if (null == name) {
-					// name可以是""
-					name = paramsStr.substring(pos, i);
-				}
-				pos = i + 1;
-			} else if (c == '&') { // 参数对的分界点
-				if (null == name && pos != i) {
-					// 对于像&a&这类无参数值的字符串，我们将name为a的值设为""
-					addParam(params, paramsStr.substring(pos, i), StrUtil.EMPTY, charset);
-				} else if (name != null) {
-					addParam(params, name, paramsStr.substring(pos, i), charset);
-					name = null;
-				}
-				pos = i + 1;
-			}
-		}
-
-		// 处理结尾
-		if (pos != i) {
-			if (name == null) {
-				addParam(params, paramsStr.substring(pos, i), StrUtil.EMPTY, charset);
-			} else {
-				addParam(params, name, paramsStr.substring(pos, i), charset);
-			}
-		} else if (name != null) {
-			addParam(params, name, StrUtil.EMPTY, charset);
-		}
-
+		queryMap.forEach((key, value) -> {
+			final List<String> values = params.computeIfAbsent(StrUtil.str(key), k -> new ArrayList<>(1));
+			// 一般是一个参数
+			values.add(StrUtil.str(value));
+		});
 		return params;
 	}
 
@@ -826,26 +868,24 @@ public class HttpUtil {
 	 * @return {@link SimpleServer}
 	 * @since 5.2.6
 	 */
-	public static SimpleServer createServer(int port){
+	public static SimpleServer createServer(int port) {
 		return new SimpleServer(port);
 	}
-	// ----------------------------------------------------------------------------------------- Private method start
 
 	/**
-	 * 将键值对加入到值为List类型的Map中
+	 * 构建简单的账号秘密验证信息，构建后类似于：
+	 * <pre>
+	 *     Basic YWxhZGRpbjpvcGVuc2VzYW1l
+	 * </pre>
 	 *
-	 * @param params  参数
-	 * @param name    key
-	 * @param value   value
-	 * @param charset 编码
+	 * @param username 账号
+	 * @param password 密码
+	 * @param charset 编码（如果账号或密码中有非ASCII字符适用）
+	 * @return 密码验证信息
+	 * @since 5.4.6
 	 */
-	private static void addParam(Map<String, List<String>> params, String name, String value, Charset charset) {
-		name = URLUtil.decode(name, charset);
-		value = URLUtil.decode(value, charset);
-		final List<String> values = params.computeIfAbsent(name, k -> new ArrayList<>(1));
-		// 一般是一个参数
-		values.add(value);
+	public static String buildBasicAuth(String username, String password, Charset charset){
+		final String data = username.concat(":").concat(password);
+		return "Basic " + Base64.encode(data, charset);
 	}
-
-	// ----------------------------------------------------------------------------------------- Private method start end
 }
